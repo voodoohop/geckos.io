@@ -45,13 +45,20 @@ export default class ConnectionsManagerClient {
   }
 
   // fetch additional candidates
-  async fetchAdditionalCandidates(host: string, id: ChannelId) {
+  async fetchAdditionalCandidates(host: string, id: ChannelId, startTime: number) {
+    // 10 seconds timeout
+    if (startTime + 10_000 < new Date().getTime()) return
+
+    console.log('fetchAdditionalCandidates')
+
     const res = await fetch(`${host}/connections/${id}/additional-candidates`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'
       }
     })
+
+    this.fetchAdditionalCandidates(host, id, startTime)
 
     if (res.ok) {
       const candidates = await res.json()
@@ -130,18 +137,7 @@ export default class ConnectionsManagerClient {
     // we do still continue to gather candidates even if the connection is established,
     // maybe we get a better connection.
     // So the server is still gathering candidates and we ask for them frequently.
-    const showBackOffIntervals = (attempts = 10, initial = 50, factor = 1.8, jitter = 20) =>
-      Array(attempts)
-        .fill(0)
-        .map(
-          (_, index) => parseInt((initial * factor ** index).toString()) + parseInt((Math.random() * jitter).toString())
-        )
-
-    showBackOffIntervals().forEach(ms => {
-      setTimeout(() => {
-        this.fetchAdditionalCandidates(host, id)
-      }, ms)
-    })
+    this.fetchAdditionalCandidates(host, id, new Date().getTime())
 
     try {
       await this.localPeerConnection.setRemoteDescription(localDescription)

@@ -135,16 +135,41 @@ const HttpServer = (server: http.Server, connectionsManager: ConnectionsManagerS
           const ids = pathname.match(/[0-9a-zA-Z]{24}/g)
           if (ids && ids.length === 1) {
             const id = ids[0]
-            const connection = connectionsManager.getConnection(id)
 
-            if (!connection) {
+            if (!connectionsManager.getConnection(id)) {
               end(res, 404)
               return
             }
 
+            let attempts = 0
+            const max_attempts = 40
+
+            const wait = () => {
+              return new Promise(resolve => {
+                setTimeout(() => {
+                  resolve()
+                }, 250)
+              })
+            }
+
+            let additionalCandidates: RTCIceCandidate[] = []
+
+            const checkNewCandidates = () => {
+              const connection = connectionsManager.getConnection(id)
+              if (connection) {
+                additionalCandidates = [...additionalCandidates, ...connection.additionalCandidates]
+                connection.additionalCandidates = []
+              }
+            }
+
             try {
-              const additionalCandidates = [...connection.additionalCandidates]
-              connection.additionalCandidates = []
+              while (additionalCandidates.length === 0 && attempts < max_attempts) {
+                await wait()
+                attempts++
+                checkNewCandidates()
+                // console.log('checkNewCandidates()', attempts, additionalCandidates.length)
+              }
+
               res.write(JSON.stringify(additionalCandidates))
               res.end()
               return

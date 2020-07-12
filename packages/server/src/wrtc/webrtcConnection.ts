@@ -133,7 +133,17 @@ export default class WebRTCConnection extends Connection {
 
         totalIceCandidates++
 
-        if (candidate) this.additionalCandidates.push(candidate)
+        if (candidate) {
+          this.additionalCandidates.push(candidate)
+
+          /**
+           * test slow candidates gathering
+           */
+          // setTimeout(() => {
+          //   console.log('additionalCandidates')
+          //   this.additionalCandidates.push(candidate)
+          // }, Math.random() * 2000)
+        }
 
         if (!candidate) {
           clearTimeout(timeout)
