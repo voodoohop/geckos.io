@@ -49,7 +49,7 @@ export default class ConnectionsManagerClient {
     // 10 seconds timeout
     if (startTime + 10_000 < new Date().getTime()) return
 
-    console.log('fetchAdditionalCandidates')
+    // console.log('fetchAdditionalCandidates')
 
     const res = await fetch(`${host}/connections/${id}/additional-candidates`, {
       method: 'GET',
