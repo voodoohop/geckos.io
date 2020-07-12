@@ -25,7 +25,7 @@ app.get('/', (req, res) => res.sendFile(join(__dirname, '../client/index.html'))
 
 // have to user server instead of app
 server.listen(3000, () => {
-  console.log('express is on http://localhost:3000')
+  console.log('express is on http://localhost:3000 or http://127.0.0.1:3000')
 })
 
 io.onConnection(channel => {
